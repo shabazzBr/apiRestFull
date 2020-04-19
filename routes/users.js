@@ -6,15 +6,14 @@ let db = new NeDB({
 
 module.exports = (app) => {
 
-    app.get("/users", (req, res) => {
+    let route = app.route('/users');
+
+    route.get((req, res) => {
 
         db.find({}).sort({ name: 1 }).exec((err, users) => {
             if (err) {
-                console.log(`error: ${err}`);
-                res.status(400).json({
 
-                    error: err
-                });
+                app.utils.error.send(err, req, res);
 
 
             } else {
@@ -35,13 +34,10 @@ module.exports = (app) => {
 
     });
 
-    app.post('/users', (req, res) => {
+    route.post((req, res) => {
         db.insert(req.body, (err, user) => {
             if (err) {
-                console.log(`error :${err}`);
-                res.status(400).json({
-                    erro: err
-                });
+                app.utils.error.send(err, req, res);
             } else {
                 res.status(200).json(user);
 
@@ -51,6 +47,47 @@ module.exports = (app) => {
     });
 
 
+    let routeId = app.route('/users/:email');
+
+    routeId.get((req, res) => {
+        db.findOne({ email: req.params.email }).exec((err, user) => {
+
+            if (err) {
+                app.utils.error.send(err, req, res);
+            } else {
+                res.status(200).json(user);
+
+            };
+
+        });
+    });
+
+    routeId.put((req, res) => {
+        db.update({ _id: req.params.id }, req.body, err => {
+
+            if (err) {
+                app.utils.error.send(err, req, res);
+            } else {
+                res.status(200).json(Object.assign(req.params, req.body));
+
+            };
+
+        });
+    });
+
+
+    routeId.delete((req, res) => {
+        db.remove({ email: req.params.email }, {}, err => {
+            if (err) {
+                app.utils.error.send(err, req, res);
+            } else {
+                res.status(200).json(req.params);
+
+            };
+
+        });
+
+    });
 
 
 };
